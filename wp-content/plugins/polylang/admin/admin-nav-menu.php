@@ -19,6 +19,10 @@ class PLL_Admin_Nav_Menu extends PLL_Nav_Menu {
 
 		$this->theme = get_option( 'stylesheet' );
 
+		// populates nav menus locations
+		// since WP 4.4, must be done before customize_register is fired
+		add_filter('theme_mod_nav_menu_locations', array($this, 'nav_menu_locations'), 20);
+
 		// integration in the WP menu interface
 		add_action('admin_init', array(&$this, 'admin_init')); // after Polylang upgrade
 
@@ -41,7 +45,6 @@ class PLL_Admin_Nav_Menu extends PLL_Nav_Menu {
 
 		// translation of menus based on chosen locations
 		add_filter('pre_update_option_theme_mods_' . $this->theme, array($this, 'update_nav_menu_locations'));
-		add_filter('theme_mod_nav_menu_locations', array($this, 'nav_menu_locations'), 20);
 		add_action('delete_nav_menu', array(&$this, 'delete_nav_menu'));
 
 		// filter _wp_auto_add_pages_to_menu by language
@@ -104,7 +107,7 @@ class PLL_Admin_Nav_Menu extends PLL_Nav_Menu {
 		foreach (array_reverse(PLL_Switcher::get_switcher_options('menu', 'string')) as $str)
 			$data['strings'][] = $str;
 
-		$data['strings'][] = __('Language switcher', 'polylang'); // the title
+		$data['title'] = __('Language switcher', 'polylang'); // the title
 
 		// get all language switcher menu items
 		$items = get_posts(array(

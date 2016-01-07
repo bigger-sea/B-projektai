@@ -37,7 +37,10 @@ if ( ! is_page_template( 'page-template-blank.php' ) ) : ?>
 					}
 				?>
 
-						<p id="footer-info"><?php printf( __( 'Designed by %1$s | Powered by %2$s', 'Divi' ), '<a href="http://www.elegantthemes.com" title="Premium WordPress Themes">Elegant Themes</a>', '<a href="http://www.wordpress.org">WordPress</a>' ); ?></p>
+						<div id="footer-info">
+							<div>B PROJEKTAI UAB &copy; 2015</div>
+							<div class="text-right">7-16 Vilnius I.K.,<br/>Blindziu gatve,<br/>Lietuvos Respublika</div>
+						</div>
 					</div>	<!-- .container -->
 				</div>
 			</footer> <!-- #main-footer -->

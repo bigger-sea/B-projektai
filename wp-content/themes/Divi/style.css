@@ -3011,10 +3011,10 @@ span.comment_date {
 }
 
 #footer-info {
-	float: left;
-	padding-bottom: 10px;
-	color: #666;
-	text-align: left;
+	padding-bottom: 12px;
+	color: #FFF;
+	display: table;
+	widows: 100%;
 }
 
 #footer-info a {
@@ -3024,6 +3024,10 @@ span.comment_date {
 
 #footer-info a:hover {
 	opacity: 0.7;
+}
+
+#footer-info div {
+	display: table-cell;
 }
 
 /* Footer Menu */
@@ -14229,4 +14233,16 @@ p.et_pb_title_meta_container {
 	.et_pb_testimonial {
 		padding-top: 10%;
 	}
+}
+
+.text-center {
+	text-align: center;
+}
+
+.text-left {
+	text-align: left;
+}
+
+.text-right {
+	text-align: right;
 }

@@ -19,12 +19,26 @@ class PLL_Frontend_Nav_Menu extends PLL_Nav_Menu {
 		$this->curlang = &$polylang->curlang;
 
 		// split the language switcher menu item in several language menu items
-		add_filter('wp_get_nav_menu_items', array(&$this, 'wp_get_nav_menu_items'));
+		add_filter('wp_get_nav_menu_items', array(&$this, 'wp_get_nav_menu_items'), 20); // after the customizer menus
 		add_filter('wp_nav_menu_objects', array(&$this, 'wp_nav_menu_objects'));
 		add_filter('nav_menu_link_attributes', array(&$this, 'nav_menu_link_attributes'), 10, 3);
 
 		// filters menus by language
 		add_filter('theme_mod_nav_menu_locations', array($this, 'nav_menu_locations'), 20);
+		add_filter( 'wp_nav_menu_args', array( &$this, 'wp_nav_menu_args' ) );
+	}
+
+	/*
+	 * Sort menu items by menu order
+	 *
+	 * @since 1.7.9
+	 *
+	 * @param object $a The first object to compare
+	 * @param object $b The second object to compare
+	 * @return int -1 or 1 if $a is considered to be respectively less than or greater than $b.
+	 */
+	protected function usort_menu_items($a, $b) {
+		return ($a->menu_order < $b->menu_order) ? -1 : 1;
 	}
 
 	/*
@@ -37,6 +51,13 @@ class PLL_Frontend_Nav_Menu extends PLL_Nav_Menu {
 	 * @return array modified items
 	 */
 	public function wp_get_nav_menu_items($items) {
+		if (doing_action('customize_register')) { // needed since WP 4.3, doing_action available since WP 3.9
+			return $items;
+		}
+
+		// the customizer menus does not sort the items and we need them to be sorted before splitting the language switcher
+		usort($items, array($this, 'usort_menu_items'));
+
 		$new_items = array();
 		$offset = 0;
 
@@ -168,5 +189,52 @@ class PLL_Frontend_Nav_Menu extends PLL_Nav_Menu {
 			}
 		}
 		return $menus;
+	}
+
+	/*
+	 * attempt to translate the nav menu when it is hardcoded or when no location is defined in wp_nav_menu
+	 *
+	 * @since 1.7.10
+	 *
+	 * @param array $args
+	 * @return array modified $args
+	 */
+	public function wp_nav_menu_args( $args ) {
+		$theme = get_option('stylesheet');
+
+		if ( empty( $this->curlang ) || empty( $this->options['nav_menus'][ $theme ] ) ) {
+			return $args;
+		}
+
+		// Get the nav menu based on the requested menu
+		$menu = wp_get_nav_menu_object( $args['menu'] );
+
+		// attempt to find a translation of this menu
+		// this obviously does not work if the nav menu has no associated theme location
+		if ( $menu ) {
+			foreach ( $this->options['nav_menus'][ $theme ] as $menus ) {
+				if ( in_array( $menu->term_id, $menus ) && ! empty( $menus[ $this->curlang->slug ] ) ) {
+					$args['menu'] = $menus[ $this->curlang->slug ];
+					return $args;
+				}
+			}
+		}
+
+		// get the first menu that has items and and is in the current language if we still can't find a menu
+		if ( ! $menu && ! $args['theme_location'] ) {
+			$menus = wp_get_nav_menus();
+			foreach ( $menus as $menu_maybe ) {
+				if ( $menu_items = wp_get_nav_menu_items( $menu_maybe->term_id, array( 'update_post_term_cache' => false ) ) ) {
+					foreach ( $this->options['nav_menus'][ $theme ] as $menus ) {
+						if ( in_array( $menu_maybe->term_id, $menus ) && ! empty( $menus[ $this->curlang->slug ] ) ) {
+							$args['menu'] = $menus[ $this->curlang->slug ];
+							return $args;
+						}
+					}
+				}
+			}
+		}
+
+		return $args;
 	}
 }
